@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { AuthToken, FakeData, Status, User } from "tweeter-shared";
 import { useState, useEffect } from "react";
+import StatusItem from "../statusItem/StatusItem"
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Link } from "react-router-dom";
 import Post from "../statusItem/Post";
@@ -30,14 +31,14 @@ const StoryScroller = () => {
 
   // Load initial items whenever the displayed user changes. Done in a separate useEffect hook so the changes from reset will be visible.
   useEffect(() => {
-    if(changedDisplayedUser) {
+    if (changedDisplayedUser) {
       loadMoreItems();
     }
   }, [changedDisplayedUser]);
 
   // Add new items whenever there are new items to add
   useEffect(() => {
-    if(newItems) {
+    if (newItems) {
       setItems([...items, ...newItems]);
     }
   }, [newItems])
@@ -122,42 +123,7 @@ const StoryScroller = () => {
         loader={<h4>Loading...</h4>}
       >
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="row mb-3 mx-0 px-0 border rounded bg-white"
-          >
-            <div className="col bg-light mx-0 px-0">
-              <div className="container px-0">
-                <div className="row mx-0 px-0">
-                  <div className="col-auto p-3">
-                    <img
-                      src={item.user.imageUrl}
-                      className="img-fluid"
-                      width="80"
-                      alt="Posting user"
-                    />
-                  </div>
-                  <div className="col">
-                    <h2>
-                      <b>
-                        {item.user.firstName} {item.user.lastName}
-                      </b>{" "}
-                      -{" "}
-                      <Link
-                        to={item.user.alias}
-                        onClick={(event) => navigateToUser(event)}
-                      >
-                        {item.user.alias}
-                      </Link>
-                    </h2>
-                    {item.formattedDate}
-                    <br />
-                    <Post status={item} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StatusItem key={index} item={item} />
         ))}
       </InfiniteScroll>
     </div>
