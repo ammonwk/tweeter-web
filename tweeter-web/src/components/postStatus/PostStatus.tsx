@@ -4,12 +4,13 @@ import { useContext } from "react";
 import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { AuthToken, Status } from "tweeter-shared";
 import useToastListener from "../toaster/ToastListenerHook";
+import useUserInfoListener from "../userInfo/UserInfoListenerHook";
 
 const PostStatus = () => {
   const { displayErrorMessage, displayInfoMessage, clearLastInfoMessage } =
     useToastListener();
 
-  const { currentUser, authToken } = useContext(UserInfoContext);
+  const { currentUser, authToken } = useUserInfoListener();
   const [post, setPost] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 

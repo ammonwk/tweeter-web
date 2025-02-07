@@ -4,6 +4,7 @@ import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { useContext } from "react";
 import useToastListener from "../toaster/ToastListenerHook";
 import Post from "./Post";
+import useUserInfoListener from "../userInfo/UserInfoListenerHook";
 
 interface Props {
     item: Status;
@@ -12,7 +13,7 @@ interface Props {
 const StatusItem = (props: Props) => {
     const { displayErrorMessage } = useToastListener();
     const { setDisplayedUser, currentUser, authToken } =
-        useContext(UserInfoContext);
+        useUserInfoListener()
 
     const navigateToUser = async (event: React.MouseEvent): Promise<void> => {
         event.preventDefault();

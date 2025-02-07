@@ -8,6 +8,7 @@ import Post from "../statusItem/Post";
 import useToastListener from "../toaster/ToastListenerHook";
 import UserItem from "../userItem/UserItem";
 import StatusItem from "../statusItem/StatusItem";
+import useUserInfoListener from "../userInfo/UserInfoListenerHook";
 
 export const PAGE_SIZE = 10;
 
@@ -23,7 +24,7 @@ const StatusItemScroller = () => {
     setNewItems(newItems);
   
   const { displayedUser, setDisplayedUser, currentUser, authToken } =
-    useContext(UserInfoContext);
+  useUserInfoListener();
 
   // Initialize the component whenever the displayed user changes
   useEffect(() => {

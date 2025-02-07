@@ -15,9 +15,10 @@ import Toaster from "./components/toaster/Toaster";
 import StatusItemScroller from "./components/mainLayout/StatusItemsScroller";
 import { AuthToken, User, FakeData } from "tweeter-shared";
 import UserItemScroller from "./components/mainLayout/UserItemScroller";
+import useUserInfoListener from "./components/userInfo/UserInfoListenerHook";
 
 const App = () => {
-  const { currentUser, authToken } = useContext(UserInfoContext);
+  const { currentUser, authToken } = useUserInfoListener();
 
   const isAuthenticated = (): boolean => {
     return !!currentUser && !!authToken;
