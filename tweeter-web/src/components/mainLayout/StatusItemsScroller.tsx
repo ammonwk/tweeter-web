@@ -7,6 +7,7 @@ import useToastListener from "../toaster/ToastListenerHook";
 import UserItem from "../userItem/UserItem";
 import StatusItem from "../statusItem/StatusItem";
 import useUserInfoListener from "../userInfo/UserInfoListenerHook";
+import navigateToUser from "../userItem/UserNavigationHook";
 
 export const PAGE_SIZE = 10;
 
@@ -79,39 +80,6 @@ const StatusItemScroller = () => {
   ): Promise<[Status[], boolean]> => {
     // TODO: Replace with the result of calling server
     return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
-  };
-
-  const navigateToUser = async (event: React.MouseEvent): Promise<void> => {
-    event.preventDefault();
-
-    try {
-      const alias = extractAlias(event.target.toString());
-
-      const user = await getUser(authToken!, alias);
-
-      if (!!user) {
-        if (currentUser!.equals(user)) {
-          setDisplayedUser(currentUser!);
-        } else {
-          setDisplayedUser(user);
-        }
-      }
-    } catch (error) {
-      displayErrorMessage(`Failed to get user because of exception: ${error}`);
-    }
-  };
-
-  const extractAlias = (value: string): string => {
-    const index = value.indexOf("@");
-    return value.substring(index);
-  };
-
-  const getUser = async (
-    authToken: AuthToken,
-    alias: string
-  ): Promise<User | null> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.findUserByAlias(alias);
   };
 
   return (
