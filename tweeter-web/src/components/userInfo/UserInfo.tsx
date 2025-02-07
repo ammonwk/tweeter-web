@@ -1,6 +1,4 @@
 import "./UserInfo.css";
-import { useContext } from "react";
-import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthToken, FakeData, User } from "tweeter-shared";
