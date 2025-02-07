@@ -2,15 +2,16 @@ import { useContext } from "react";
 import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { AuthToken, FakeData, Status, User } from "tweeter-shared";
 import { useState, useEffect } from "react";
-import StatusItem from "../statusItem/StatusItem"
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Link } from "react-router-dom";
 import Post from "../statusItem/Post";
 import useToastListener from "../toaster/ToastListenerHook";
+import UserItem from "../userItem/UserItem";
+import StatusItem from "../statusItem/StatusItem";
 
 export const PAGE_SIZE = 10;
 
-const StoryScroller = () => {
+const StatusItemScroller = () => {
   const { displayErrorMessage } = useToastListener();
   const [items, setItems] = useState<Status[]>([]);
   const [newItems, setNewItems] = useState<Status[]>([]);
@@ -20,7 +21,7 @@ const StoryScroller = () => {
 
   const addItems = (newItems: Status[]) =>
     setNewItems(newItems);
-
+  
   const { displayedUser, setDisplayedUser, currentUser, authToken } =
     useContext(UserInfoContext);
 
@@ -31,14 +32,14 @@ const StoryScroller = () => {
 
   // Load initial items whenever the displayed user changes. Done in a separate useEffect hook so the changes from reset will be visible.
   useEffect(() => {
-    if (changedDisplayedUser) {
+    if(changedDisplayedUser) {
       loadMoreItems();
     }
   }, [changedDisplayedUser]);
 
   // Add new items whenever there are new items to add
   useEffect(() => {
-    if (newItems) {
+    if(newItems) {
       setItems([...items, ...newItems]);
     }
   }, [newItems])
@@ -53,7 +54,7 @@ const StoryScroller = () => {
 
   const loadMoreItems = async () => {
     try {
-      const [newItems, hasMore] = await loadMoreStoryItems(
+      const [newItems, hasMore] = await loadMoreStatusItems(
         authToken!,
         displayedUser!.alias,
         PAGE_SIZE,
@@ -66,12 +67,12 @@ const StoryScroller = () => {
       setChangedDisplayedUser(false)
     } catch (error) {
       displayErrorMessage(
-        `Failed to load story items because of exception: ${error}`
+        `Failed to load status items because of exception: ${error}`
       );
     }
   };
 
-  const loadMoreStoryItems = async (
+  const loadMoreStatusItems = async (
     authToken: AuthToken,
     userAlias: string,
     pageSize: number,
@@ -80,6 +81,7 @@ const StoryScroller = () => {
     // TODO: Replace with the result of calling server
     return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
   };
+
   const navigateToUser = async (event: React.MouseEvent): Promise<void> => {
     event.preventDefault();
 
@@ -123,11 +125,16 @@ const StoryScroller = () => {
         loader={<h4>Loading...</h4>}
       >
         {items.map((item, index) => (
-          <StatusItem key={index} item={item} />
+          <div
+            key={index}
+            className="row mb-3 mx-0 px-0 border rounded bg-white"
+          >
+            <StatusItem key={index} item={item} />
+          </div>
         ))}
       </InfiniteScroll>
     </div>
   );
 };
 
-export default StoryScroller;
+export default StatusItemScroller;
