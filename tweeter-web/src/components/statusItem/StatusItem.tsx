@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import useToastListener from "../toaster/ToastListenerHook";
 import Post from "./Post";
 import useUserInfoListener from "../userInfo/UserInfoListenerHook";
-import navigateToUser from "../userItem/UserNavigationHook";
+import useUserNavigation from "../userItem/UserNavigationHook";
 
 interface Props {
     item: Status;
@@ -13,6 +13,7 @@ const StatusItem = (props: Props) => {
     const { displayErrorMessage } = useToastListener();
     const { setDisplayedUser, currentUser, authToken } =
         useUserInfoListener()
+    const { navigateToUser } = useUserNavigation();
 
     return (
         <div

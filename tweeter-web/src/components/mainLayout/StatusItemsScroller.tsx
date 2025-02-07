@@ -7,7 +7,7 @@ import useToastListener from "../toaster/ToastListenerHook";
 import UserItem from "../userItem/UserItem";
 import StatusItem from "../statusItem/StatusItem";
 import useUserInfoListener from "../userInfo/UserInfoListenerHook";
-import navigateToUser from "../userItem/UserNavigationHook";
+import useUserNavigation from "../userItem/UserNavigationHook";
 
 export const PAGE_SIZE = 10;
 
@@ -18,6 +18,7 @@ const StatusItemScroller = () => {
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [lastItem, setLastItem] = useState<Status | null>(null);
   const [changedDisplayedUser, setChangedDisplayedUser] = useState(true);
+  const { navigateToUser } = useUserNavigation();
 
   const addItems = (newItems: Status[]) =>
     setNewItems(newItems);
