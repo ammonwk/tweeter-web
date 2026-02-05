@@ -1,22 +1,18 @@
 import "./AppNavbar.css";
-import { useContext } from "react";
-import {
-  UserInfoContext,
-  UserInfoActionsContext,
-} from "../userInfo/UserInfoContexts";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import Image from "react-bootstrap/Image";
-import { ToastActionsContext } from "../toaster/ToastContexts";
 import { AuthToken } from "tweeter-shared";
 import { ToastType } from "../toaster/Toast";
+import { useUserInfo, useUserInfoActions } from "../userInfo/hooks";
+import { useMessageActions } from "../toaster/hooks";
 
 const AppNavbar = () => {
   const location = useLocation();
-  const { authToken, displayedUser } = useContext(UserInfoContext);
-  const { clearUserInfo } = useContext(UserInfoActionsContext);
+  const { authToken, displayedUser } = useUserInfo();
+  const { clearUserInfo } = useUserInfoActions();
   const navigate = useNavigate();
-  const { displayToast, deleteToast } = useContext(ToastActionsContext);
+  const { displayToast, deleteToast } = useMessageActions();
 
   const logOut = async () => {
     const loggingOutToastId = displayToast(ToastType.Info, "Logging Out...", 0);

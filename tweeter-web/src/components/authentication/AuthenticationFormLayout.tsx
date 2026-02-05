@@ -1,8 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { useContext } from "react";
-import { ToastActionsContext } from "../toaster/ToastContexts";
 import { ToastType } from "../toaster/Toast";
+import { useMessageActions } from "../toaster/hooks";
 
 interface Props {
   headingText: string;
@@ -17,7 +16,7 @@ interface Props {
 }
 
 const AuthenticationFormLayout = (props: Props) => {
-  const { displayToast } = useContext(ToastActionsContext);
+  const { displayToast } = useMessageActions();
 
   const displayInfoMessageWithDarkBackground = (message: string): void => {
     displayToast(
