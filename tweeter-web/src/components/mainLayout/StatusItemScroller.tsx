@@ -1,21 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AuthToken, FakeData, Status, User } from "tweeter-shared";
 import { useParams } from "react-router-dom";
 import { ToastType } from "../toaster/Toast";
 import StatusItem from "../statusItem/StatusItem";
-import { useUserInfo, useUserInfoActions } from "../userInfo/hooks";
+import { useUserInfo } from "../userInfo/hooks";
 import { useMessageActions } from "../toaster/hooks";
+import { StatusPresenter } from "../../presenters/StatusPresenter";
+import { FeedPresenter } from "../../presenters/FeedPresenter";
+import { StatusView } from "../../presenters/StatusPresenter";
 
 export const PAGE_SIZE = 10;
 
 interface Props {
-  loadItems: (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastItem: Status | null
-  ) => Promise<[Status[], boolean]>;
+  presenter: new (view: StatusView) => StatusPresenter;
   itemDescription: string;
   featurePath: string;
 }
@@ -23,79 +21,35 @@ interface Props {
 const StatusItemScroller = (props: Props) => {
   const { displayToast } = useMessageActions();
   const [items, setItems] = useState<Status[]>([]);
-  const [hasMoreItems, setHasMoreItems] = useState(true);
-  const [lastItem, setLastItem] = useState<Status | null>(null);
+  const { authToken, displayedUser } = useUserInfo();
 
-  const addItems = (newItems: Status[]) =>
-    setItems((previousItems) => [...previousItems, ...newItems]);
+  const presenterRef = useRef(
+    new props.presenter({
+      addItems: (newItems) => setItems((previousItems) => [...previousItems, ...newItems]),
+      displayErrorMessage: (message) => displayToast(ToastType.Error, message, 0),
+    })
+  )
 
-  const { displayedUser, authToken } = useUserInfo();
-  const { setDisplayedUser } = useUserInfoActions();
-  const { displayedUser: displayedUserAliasParam } = useParams();
-
-  // Update the displayed user context variable whenever the displayedUser url parameter changes. This allows browser forward and back buttons to work correctly.
   useEffect(() => {
-    if (
-      authToken &&
-      displayedUserAliasParam &&
-      displayedUserAliasParam != displayedUser!.alias
-    ) {
-      getUser(authToken!, displayedUserAliasParam!).then((toUser) => {
-        if (toUser) {
-          setDisplayedUser(toUser);
-        }
-      });
-    }
-  }, [displayedUserAliasParam]);
+    presenterRef.current = new props.presenter({
+      addItems: (newItems) => setItems((previousItems) => [...previousItems, ...newItems]),
+      displayErrorMessage: (message) => displayToast(ToastType.Error, message, 0),
+    });
+  }, [props.presenter]);
 
-  // Initialize the component whenever the displayed user changes
   useEffect(() => {
-    reset();
-    loadMoreItems(null);
+    presenterRef.current.reset();
+    presenterRef.current.loadMoreItems(authToken!, displayedUser!.alias!);
+    setItems([]);
   }, [displayedUser]);
-
-  const reset = async () => {
-    setItems(() => []);
-    setLastItem(() => null);
-    setHasMoreItems(() => true);
-  };
-
-  const loadMoreItems = async (lastItem: Status | null) => {
-    try {
-      const [newItems, hasMore] = await props.loadItems(
-        authToken!,
-        displayedUser!.alias,
-        PAGE_SIZE,
-        lastItem
-      );
-
-      setHasMoreItems(() => hasMore);
-      setLastItem(() => newItems[newItems.length - 1]);
-      addItems(newItems);
-    } catch (error) {
-      displayToast(
-        ToastType.Error,
-        `Failed to load ${props.itemDescription} because of exception: ${error}`,
-        0
-      );
-    }
-  };
-
-  const getUser = async (
-    authToken: AuthToken,
-    alias: string
-  ): Promise<User | null> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.findUserByAlias(alias);
-  };
 
   return (
     <div className="container px-0 overflow-visible vh-100">
       <InfiniteScroll
         className="pr-0 mr-0"
         dataLength={items.length}
-        next={() => loadMoreItems(lastItem)}
-        hasMore={hasMoreItems}
+        next={() => presenterRef.current.loadMoreItems(authToken!, displayedUser!.alias!)}
+        hasMore={presenterRef.current.hasMoreItems}
         loader={<h4>Loading...</h4>}
       >
         {items.map((item, index) => (
