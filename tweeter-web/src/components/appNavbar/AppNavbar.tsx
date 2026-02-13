@@ -6,36 +6,27 @@ import { AuthToken } from "tweeter-shared";
 import { ToastType } from "../toaster/Toast";
 import { useUserInfo, useUserInfoActions } from "../userInfo/hooks";
 import { useMessageActions } from "../toaster/hooks";
+import { NavBarPresenter } from "../../presenters/NavBarPresenter";
+import { NavBarView } from "../../presenters/NavBarPresenter";
+import { useRef } from "react";
+interface Props {
+  presenter: new (view: NavBarView) => NavBarPresenter;
+}
 
-const AppNavbar = () => {
-  const location = useLocation();
-  const { authToken, displayedUser } = useUserInfo();
+const AppNavbar = (props: Props) => {
+  const { displayToast, deleteToast } = useMessageActions();
   const { clearUserInfo } = useUserInfoActions();
   const navigate = useNavigate();
-  const { displayToast, deleteToast } = useMessageActions();
+  const presenterRef = useRef(new props.presenter({
+    logOut: () => clearUserInfo(),
+    displayErrorMessage: (message) => displayToast(ToastType.Error, message, 0),
+    displayToast: (message) => displayToast(ToastType.Info, message, 0),
+    deleteToast: (toastId) => deleteToast(toastId!), 
+    navigate: (path) => navigate(path),
+  }));
 
-  const logOut = async () => {
-    const loggingOutToastId = displayToast(ToastType.Info, "Logging Out...", 0);
-
-    try {
-      await logout(authToken!);
-
-      deleteToast(loggingOutToastId);
-      clearUserInfo();
-      navigate("/login");
-    } catch (error) {
-      displayToast(
-        ToastType.Error,
-        `Failed to log user out because of exception: ${error}`,
-        0
-      );
-    }
-  };
-
-  const logout = async (authToken: AuthToken): Promise<void> => {
-    // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-    await new Promise((res) => setTimeout(res, 1000));
-  };
+  const location = useLocation();
+  const { authToken, displayedUser } = useUserInfo();
 
   return (
     <Navbar
@@ -112,16 +103,12 @@ const AppNavbar = () => {
               </NavLink>
             </Nav.Item>
             <Nav.Item>
-              <NavLink
+              <button
                 id="logout"
-                onClick={logOut}
-                to={location.pathname}
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
+                onClick={() => presenterRef.current.logOut(authToken!)}
               >
-                Logout
-              </NavLink>
+                Logout  
+              </button>
             </Nav.Item>
           </Nav>
         </Navbar.Collapse>
