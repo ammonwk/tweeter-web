@@ -30,7 +30,7 @@ const StatusItem = (props: Props) => {
               </b>{" "}
               -{" "}
               <Link
-                to={`${props.featurePath}/${props.status.user.alias}`}
+                to={`/${props.featurePath}/${props.status.user.alias}`}
                 onClick={(event) =>
                   navigateToUser(event, props.featurePath)
                 }

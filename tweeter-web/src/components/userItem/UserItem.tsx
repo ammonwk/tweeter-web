@@ -29,7 +29,7 @@ const UserItem = (props: Props) => {
               </b>{" "}
               -{" "}
               <Link
-                to={`${props.featurePath}/${props.user.alias}`}
+                to={`/${props.featurePath}/${props.user.alias}`}
                 onClick={(event) => navigateToUser(event, props.featurePath)}
               >
                 {props.user.alias}

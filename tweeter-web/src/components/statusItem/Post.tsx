@@ -16,7 +16,7 @@ const Post = (props: Props) => {
         segment.type === Type.alias ? (
           <Link
             key={index}
-            to={`${props.featurePath}/${segment.text}`}
+            to={`/${props.featurePath}/${segment.text}`}
             onClick={(event) => navigateToUser(event, props.featurePath)}
           >
             {segment.text}
