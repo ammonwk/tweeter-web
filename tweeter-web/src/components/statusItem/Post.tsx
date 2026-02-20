@@ -17,7 +17,7 @@ const Post = (props: Props) => {
           <Link
             key={index}
             to={`/${props.featurePath}/${segment.text}`}
-            onClick={(event) => navigateToUser(event, props.featurePath)}
+            onClick={(event) => {event.preventDefault(); navigateToUser(event, props.featurePath)}}
           >
             {segment.text}
           </Link>

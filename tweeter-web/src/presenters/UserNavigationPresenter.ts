@@ -29,10 +29,7 @@ export class UserNavigationPresenter {
         featurePath: string,
         authToken: AuthToken | undefined,
         displayedUser: User
-      ): Promise<void> {
-        console.log("navigateToUser called")
-        event.preventDefault();
-    
+      ): Promise<void> {    
         try {
           const alias = this.extractAlias(event.target.toString());
     

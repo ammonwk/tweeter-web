@@ -32,9 +32,9 @@ const StatusItem = (props: Props) => {
               <Link
                 to={`/${props.featurePath}/${props.status.user.alias}`}
                 onClick={(event) =>
-                  navigateToUser(event, props.featurePath)
-                }
-              >
+                  {event.preventDefault();
+                  navigateToUser(event, props.featurePath)}}
+                >
                 {props.status.user.alias}
               </Link>
             </h2>
