@@ -32,13 +32,11 @@ const UserInfo = (props: UserInfoProps) => {
     setFolloweeCount: (followeeCount: number) => setFolloweeCount(followeeCount),
     setFollowerCount: (followerCount: number) => setFollowerCount(followerCount),
     setIsLoading: (isLoading: boolean) => setIsLoading(isLoading),
-    displayedUser: displayedUser!,
-    authToken: authToken!,
   }));
 
   useEffect(() => {
     presenterRef.current.setDisplayedUser(displayedUser!);
-    presenterRef.current.setIsFollowerStatus(currentUser!);
+    presenterRef.current.setIsFollowerStatus(currentUser!, displayedUser!, authToken!);
     presenterRef.current.setNumbFollowees(authToken!, displayedUser!);
     presenterRef.current.setNumbFollowers(authToken!, displayedUser!);
   }, [displayedUser]);
@@ -90,7 +88,7 @@ const UserInfo = (props: UserInfoProps) => {
                       className="btn btn-md btn-secondary me-1"
                       type="submit"
                       style={{ width: "6em" }}
-                      onClick={(event) => {event.preventDefault(); presenterRef.current.unfollowDisplayedUser()}}
+                      onClick={(event) => {event.preventDefault(); presenterRef.current.unfollowDisplayedUser(authToken!, displayedUser!)}}
                     >
                       {isLoading ? (
                         <span
@@ -108,7 +106,7 @@ const UserInfo = (props: UserInfoProps) => {
                       className="btn btn-md btn-primary me-1"
                       type="submit"
                       style={{ width: "6em" }}
-                      onClick={(event) => {event.preventDefault(); presenterRef.current.followDisplayedUser()}}
+                      onClick={(event) => {event.preventDefault(); presenterRef.current.followDisplayedUser(authToken!, displayedUser!)}}
                     >
                       {isLoading ? (
                         <span
