@@ -4,6 +4,7 @@ import AppNavbar from "../appNavbar/AppNavbar";
 import PostStatus from "../postStatus/PostStatus";
 import UserInfo from "../userInfo/UserInfoComponent";
 import { NavBarPresenter } from "../../presenters/NavBarPresenter";
+import { PostStatusPresenter } from "../../presenters/PostStatusPresenter";
 
 const MainLayout = () => {
   return (
@@ -17,7 +18,7 @@ const MainLayout = () => {
                 <UserInfo />
               </div>
               <div className="p-3 border mt-1 rounded bg-light">
-                <PostStatus />
+                <PostStatus presenter={PostStatusPresenter} />
               </div>
             </div>
           </div>
