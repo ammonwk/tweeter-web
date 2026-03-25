@@ -1,5 +1,3 @@
-import { AuthToken, Status } from "tweeter-shared";
-
 export interface View {
     displayErrorMessage: (message: string) => void;
 }
@@ -12,7 +10,7 @@ export interface MessageView extends View {
 export abstract class Presenter<V extends View> {
     private _view: V;
 
-    protected constructor(view: V) {
+    public constructor(view: V) {
         this._view = view;
     }
 
@@ -27,7 +25,7 @@ export abstract class Presenter<V extends View> {
         try {
             await operation();
         } catch (error) {
-            this.view.displayErrorMessage(errorMessage);
+            this.view.displayErrorMessage(`Failed to ${errorMessage} because of exception: ${error}`);
         }
     }
 }
