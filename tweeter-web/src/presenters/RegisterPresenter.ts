@@ -1,29 +1,16 @@
-import { UserService } from "../model/service/UserService";
 import { ChangeEvent } from "react";
 import { Buffer } from "buffer";
-import { AuthToken, User } from "tweeter-shared";
+import { AuthenticationView, AuthenticationPresenter } from "./AuthenticationPresenter";
 
-export interface RegisterView {
-    displayErrorMessage: (message: string) => void;
+export interface RegisterView extends AuthenticationView {
     setImageBytes: (imageBytes: Uint8Array) => void;
     setImageFileExtension: (imageFileExtension: string) => void;
-    setIsLoading: (isLoading: boolean) => void;
     setImageUrl: (imageUrl: string) => void;
-    navigate: (path: string) => void;
-    updateUserInfo: (user: User, displayedUser: User, authToken: AuthToken, rememberMe: boolean) => void;
 }
 
-export class RegisterPresenter {
-  private _view: RegisterView;
-  public userService: UserService;
-
+export class RegisterPresenter extends AuthenticationPresenter<RegisterView> {
   public constructor(view: RegisterView) {
-      this._view = view;
-      this.userService = new UserService();
-  }
-
-  protected get view() {
-    return this._view;
+    super(view);
   }
 
   public checkSubmitButtonStatus(firstName: string, lastName: string, alias: string, password: string, imageBytes: Uint8Array, imageFileExtension: string): boolean {
@@ -85,24 +72,8 @@ export class RegisterPresenter {
   };
 
   public async doRegister(firstName: string, lastName: string, alias: string, password: string, imageBytes: Uint8Array, imageFileExtension: string, rememberMe: boolean) {
-    try {
-      this.view.setIsLoading(true);
-
-      const [user, authToken] = await this.userService.register(
-        firstName,
-        lastName,
-        alias,
-        password,
-        imageBytes,
-        imageFileExtension
-      );
-
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
-      this.view.navigate(`/feed/${user.alias}`);
-    } catch (error) {
-      this.view.displayErrorMessage(`Failed to register user because of exception: ${error}`);
-    } finally {
-      this.view.setIsLoading(false);
-    }
+    await this.authenticateOperation(async () => {
+      return this.userService.register(firstName, lastName, alias, password, imageBytes, imageFileExtension);
+    }, rememberMe, `/feed/${alias}`, "register user");
   };
 }

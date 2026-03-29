@@ -1,9 +1,9 @@
 import { AuthToken } from "tweeter-shared";
 import { Status } from "tweeter-shared";
 import { UserService } from "../model/service/UserService";
+import { Presenter, View } from "./Presenter";
 
-export interface PostStatusView {
-    displayErrorMessage: (message: string) => void;
+export interface PostStatusView extends View {
     displaySuccessMessage: (message: string) => void;
     clearPost: () => void;
     setIsLoading: (isLoading: boolean) => void;
@@ -11,32 +11,28 @@ export interface PostStatusView {
     deleteToast: (toastId: string | undefined) => void;
 }
 
-export class PostStatusPresenter {
-    private _view: PostStatusView;
-    private _userService: UserService;
-    
+export class PostStatusPresenter extends Presenter<PostStatusView> {
+    private readonly _userService: UserService;
+
     public constructor(view: PostStatusView) {
-        this._view = view;
+        super(view);
         this._userService = new UserService();
     }
 
-    protected get view() {
-        return this._view;
+    protected get userService() {
+        return this._userService;
     }
 
     public async postStatus(authToken: AuthToken, newStatus: Status) {
-        const toastId = this._view.displayToast("Posting status...");
-        try {
-            this._view.setIsLoading(true);
-            await this._userService.postStatus(authToken, newStatus);
-            this._view.displaySuccessMessage("Status posted successfully");
-            this._view.clearPost();
-        } catch (error) {
-            this._view.displayErrorMessage(`Failed to post status because of exception: ${error}`);
-        } finally {
-            this._view.setIsLoading(false);
-            this._view.deleteToast(toastId!);
-        }
+        this.view.setIsLoading(true);
+        let postStatusToast = this.view.displayToast("Posting status...");
+        await this.doFailureReportingOperation(async () => {
+            await this.userService.postStatus(authToken, newStatus);
+            this.view.displaySuccessMessage("Status posted successfully");
+        }, "post status");
+        this.view.deleteToast(postStatusToast);
+        this.view.setIsLoading(false);
+        this.view.clearPost();
     }
 
     public submitPost(authToken: AuthToken, newStatus: Status) {
@@ -44,6 +40,6 @@ export class PostStatusPresenter {
     }
 
     public clearPost() {
-        this._view.clearPost();
+        this.view.clearPost();
     }
 }

@@ -1,10 +1,7 @@
+import { AuthToken, User } from "tweeter-shared";
+
 export interface View {
     displayErrorMessage: (message: string) => void;
-}
-
-export interface MessageView extends View {
-    displayToast: (message: string) => string;
-    deleteToast: (toastId: string | undefined) => void;
 }
 
 export abstract class Presenter<V extends View> {

@@ -1,27 +1,22 @@
 import { AuthToken, User } from "tweeter-shared";
-import { ToastType } from "../components/toaster/Toast";
 import { UserService } from "../model/service/UserService";
+import { Presenter, View } from "./Presenter";
 
-export interface UserNavigationView {
-    displayErrorMessage: (message: string) => void;
-    displaySuccessMessage: (message: string) => void;
-    displayToast: (message: string) => string;
-    deleteToast: (toastId: string | undefined) => void;
+export interface UserNavigationView extends View {
     setDisplayedUser: (user: User) => void;
     navigate: (path: string) => void;
 }
 
-export class UserNavigationPresenter {
-    private _view: UserNavigationView;
-    private _userService: UserService;
+export class UserNavigationPresenter extends Presenter<UserNavigationView> {
+    private readonly _userService: UserService;
 
     public constructor(view: UserNavigationView) {
-        this._view = view;
+        super(view);
         this._userService = new UserService();
     }
 
-    protected get view() {
-        return this._view;
+    protected get userService() {
+        return this._userService;
     }
 
     public async navigateToUser(
@@ -30,30 +25,22 @@ export class UserNavigationPresenter {
         authToken: AuthToken | undefined,
         displayedUser: User
       ): Promise<void> {    
-        try {
+        await this.doFailureReportingOperation(async () => {
           const alias = this.extractAlias(event.target.toString());
     
-          const toUser = await this.getUser(authToken!, alias);
+          const toUser = await this.userService.getUser(authToken!, alias);
     
           if (toUser) {
             if (!toUser.equals(displayedUser)) {
-              this._view.setDisplayedUser(toUser);
-              this._view.navigate(`/${featurePath}/${toUser.alias}`);
+              this.view.setDisplayedUser(toUser);
+              this.view.navigate(`/${featurePath}/${toUser.alias}`);
             }
           }
-        } catch (error) {
-          this._view.displayErrorMessage(
-            `Failed to get user because of exception: ${error}`
-          );
-        }
+        }, "get user");
     }
 
     private extractAlias(value: string): string {
         const index = value.indexOf("@");
         return value.substring(index);
-    }
-
-    private getUser(authToken: AuthToken, alias: string): Promise<User | null> {
-        return this._userService.getUser(authToken, alias);
     }
 }
