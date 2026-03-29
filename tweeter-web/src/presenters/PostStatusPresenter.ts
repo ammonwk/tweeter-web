@@ -29,10 +29,10 @@ export class PostStatusPresenter extends Presenter<PostStatusView> {
         await this.doFailureReportingOperation(async () => {
             await this.userService.postStatus(authToken, newStatus);
             this.view.displaySuccessMessage("Status posted successfully");
+            this.view.clearPost();
         }, "post status");
         this.view.deleteToast(postStatusToast);
         this.view.setIsLoading(false);
-        this.view.clearPost();
     }
 
     public submitPost(authToken: AuthToken, newStatus: Status) {
