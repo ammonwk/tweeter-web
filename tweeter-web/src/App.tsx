@@ -11,13 +11,16 @@ import Login from "./components/authentication/login/Login";
 import Register from "./components/authentication/register/Register";
 import MainLayout from "./components/mainLayout/MainLayout";
 import Toaster from "./components/toaster/Toaster";
-import UserItemScroller from "./components/mainLayout/UserItemScroller";
-import { AuthToken, FakeData, Status, User } from "tweeter-shared";
-import StatusItemScroller from "./components/mainLayout/StatusItemScroller";
+import ItemScroller from "./components/mainLayout/ItemScroller";
 import { FeedPresenter } from "./presenters/FeedPresenter";
 import { StoryPresenter } from "./presenters/StoryPresenter";
 import { FolloweePresenter } from "./presenters/FolloweePresenter";
 import { FollowerPresenter } from "./presenters/FollowerPresenter";
+import StatusItem from "./components/statusItem/StatusItem";
+import { Status, User } from "tweeter-shared";
+import UserItem from "./components/userItem/UserItem";
+import { StatusService } from "./model/service/StatusService";
+import { FollowService } from "./model/service/FollowService";
 
 const App = () => {
   const { currentUser, authToken } = useUserInfo();
@@ -47,10 +50,10 @@ const AuthenticatedRoutes = () => {
     <Routes>
       <Route element={<MainLayout />}>
         <Route index element={<Navigate to={`/feed/${displayedUser!.alias}`} />} />
-        <Route path="feed/:displayedUser" element={<StatusItemScroller presenter={FeedPresenter} itemDescription="feed items" key="feed items" featurePath="feed" />} />
-        <Route path="story/:displayedUser" element={<StatusItemScroller presenter={StoryPresenter} itemDescription="story items" key="story items" featurePath="story" />} />
-        <Route path="followees/:displayedUser" element={<UserItemScroller presenter={FolloweePresenter} itemDescription="followees" key="followees" featurePath="followees" />} />
-        <Route path="followers/:displayedUser" element={<UserItemScroller presenter={FollowerPresenter} itemDescription="followers" key="followers" featurePath="followers" />} />
+        <Route path="feed/:displayedUser" element={<ItemScroller<Status, StatusService> presenterGenerator={(view) => new FeedPresenter(view)} itemComponentGenerator={(item, index) => <StatusItem status={item} featurePath="feed" />} key="feed items" featurePath="feed" />} />
+        <Route path="story/:displayedUser" element={<ItemScroller<Status, StatusService> presenterGenerator={(view) => new StoryPresenter(view)} itemComponentGenerator={(item, index) => <StatusItem status={item} featurePath="story" />} key="story items" featurePath="story" />} />
+        <Route path="followees/:displayedUser" element={<ItemScroller<User, FollowService> presenterGenerator={(view) => new FolloweePresenter(view)} itemComponentGenerator={(item, index) => <UserItem user={item} featurePath="followees" />} key="followees" featurePath="followees" />} />
+        <Route path="followers/:displayedUser" element={<ItemScroller<User, FollowService> presenterGenerator={(view) => new FollowerPresenter(view)} itemComponentGenerator={(item, index) => <UserItem user={item} featurePath="followers" />} key="followers" featurePath="followers" />} />
         <Route path="logout" element={<Navigate to="/login" />} />
         <Route path="*" element={<Navigate to={`/feed/${displayedUser!.alias}`} />} />
       </Route>
