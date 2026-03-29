@@ -1,33 +1,12 @@
-import { AuthToken } from "tweeter-shared";
-import { StatusPresenter, StatusView } from "./StatusPresenter";
-import { StatusService } from "../model/service/StatusService";
+import { AuthToken, Status } from "tweeter-shared";
+import { PagedStatusItemPresenter } from "./PagedStatusItemPresenter";
+import { PagedPresenter } from "./PagedPresenter";
 
-export const PAGE_SIZE = 10;
-
-export class FeedPresenter extends StatusPresenter {
-    private statusService: StatusService;
-
-    public constructor(view: StatusView) {
-        super(view);
-        this.statusService = new StatusService();
+export class FeedPresenter extends PagedStatusItemPresenter {
+    protected getMoreItems(authToken: AuthToken, userAlias: string): Promise<[Status[], boolean]> {
+        return this.service.loadMoreFeedStatusItems(authToken, userAlias, PagedPresenter.PAGE_SIZE, this.lastItem);
     }
-
-    public async loadMoreItems(authToken: AuthToken, userAlias: string) {
-        try {
-            const [newItems, hasMore] = await this.statusService.loadMoreFeedStatusItems(
-                authToken,
-                userAlias,
-                PAGE_SIZE,
-                this.lastItem
-            );
-
-            this.hasMoreItems = hasMore;
-            this.lastItem = newItems[newItems.length - 1];
-            this.view.addItems(newItems);
-        } catch (error) {
-            this.view.displayErrorMessage(
-                `Failed to load feed because of exception: ${error}`
-            );
-        }
+    protected getItemDescription(): string {
+        return "load feed";
     }
 }

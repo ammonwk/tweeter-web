@@ -11,11 +11,19 @@ export abstract class PagedPresenter<T, U> extends Presenter<PagedItemView<T>> {
     private _lastItem: T | null;
     public static readonly PAGE_SIZE = 10;
     
-    abstract createService(): U;
+    protected abstract createService(): U;
 
-    abstract getMoreItems(authToken: AuthToken, userAlias: string): Promise<[T[], boolean]>;
+    protected get service() {
+        return this._service;
+    }
 
-    abstract getItemDescription(): string;
+    protected get lastItem() {
+        return this._lastItem;
+    }
+
+    protected abstract getMoreItems(authToken: AuthToken, userAlias: string): Promise<[T[], boolean]>;
+
+    protected abstract getItemDescription(): string;
 
     public async loadMoreItems(authToken: AuthToken, userAlias: string): Promise<void> {
         await this.doFailureReportingOperation(async () => {
