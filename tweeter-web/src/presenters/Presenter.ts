@@ -18,7 +18,7 @@ export abstract class Presenter<V extends View> {
         return this._view;
     }
 
-    protected async handleError(
+    protected async doFailureReportingOperation(
         operation: () => Promise<void>,
         errorMessage: string
     ): Promise<void> {
