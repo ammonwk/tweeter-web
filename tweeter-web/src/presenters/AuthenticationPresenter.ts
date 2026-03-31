@@ -10,17 +10,6 @@ export interface AuthenticationView extends View {
 }
 
 export abstract class AuthenticationPresenter<V extends AuthenticationView> extends Presenter<V> {
-    private readonly _userService: UserService;
-
-    public constructor(view: V) {
-        super(view);
-        this._userService = new UserService();
-    }
-
-    protected get userService() {
-        return this._userService;
-    }
-
     protected async authenticateOperation(
         operation: () => Promise<[User, AuthToken]>,
         rememberMe: boolean,

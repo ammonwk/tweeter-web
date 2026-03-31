@@ -12,14 +12,8 @@ export interface NavBarView extends View {
 }
 
 export class NavBarPresenter extends Presenter<NavBarView> {
-    private readonly _userService: UserService;
-
     public constructor(view: NavBarView) {
         super(view);
-        this._userService = new UserService();
-    }
-    protected get userService() {
-        return this._userService;
     }
 
     public async logOut(authToken: AuthToken): Promise<void> {

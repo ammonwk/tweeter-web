@@ -12,15 +12,9 @@ export interface PostStatusView extends View {
 }
 
 export class PostStatusPresenter extends Presenter<PostStatusView> {
-    private readonly _userService: UserService;
 
     public constructor(view: PostStatusView) {
         super(view);
-        this._userService = new UserService();
-    }
-
-    protected get userService() {
-        return this._userService;
     }
 
     public async postStatus(authToken: AuthToken, newStatus: Status) {

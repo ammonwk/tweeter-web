@@ -16,15 +16,8 @@ export interface UserInfoView extends View {
 }
 
 export class UserInfoPresenter extends Presenter<UserInfoView> {
-    private readonly _userService: UserService;
-
     public constructor(view: UserInfoView) {
         super(view);
-        this._userService = new UserService();
-    }
-
-    protected get userService() {
-        return this._userService;
     }
 
     public async setDisplayedUser(user: User) {
