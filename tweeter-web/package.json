@@ -30,7 +30,8 @@
     "start": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
-    "reload": "npm run build && npm run serve"
+    "reload": "npm run build && npm run serve",
+    "test": "jest"
   },
   "eslintConfig": {
     "extends": [
@@ -53,6 +54,9 @@
   "devDependencies": {
     "@types/node": "^20.11.24",
     "@vitejs/plugin-react": "^4.2.1",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
+    "ts-jest": "^29.4.9",
     "ts-mockito": "^2.6.1",
     "vite": "^4.5.2",
     "vite-plugin-svgr": "^3.3.0",
