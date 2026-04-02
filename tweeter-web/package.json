@@ -53,6 +53,7 @@
   "devDependencies": {
     "@types/node": "^20.11.24",
     "@vitejs/plugin-react": "^4.2.1",
+    "ts-mockito": "^2.6.1",
     "vite": "^4.5.2",
     "vite-plugin-svgr": "^3.3.0",
     "vite-tsconfig-paths": "^4.3.1"
