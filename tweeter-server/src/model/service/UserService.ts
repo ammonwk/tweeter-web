@@ -88,6 +88,7 @@ export class UserService {
   }
 
   public async logout(token: string): Promise<void> {
+    await this.authService.verifyToken(token);
     const authTokenDAO = this.factory.createAuthTokenDAO();
     await authTokenDAO.deleteAuthToken(token);
   }

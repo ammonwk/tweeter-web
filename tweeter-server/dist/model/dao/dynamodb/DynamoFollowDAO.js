@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DynamoFollowDAO = void 0;
 const lib_dynamodb_1 = require("@aws-sdk/lib-dynamodb");
@@ -31,6 +8,10 @@ class DynamoFollowDAO {
     tableName = "tweeter-follows";
     indexName = "follows-index";
     countsTable = "tweeter-follow-counts";
+    userDAO;
+    constructor(userDAO) {
+        this.userDAO = userDAO;
+    }
     async putFollow(followerAlias, followeeAlias) {
         await this.client.send(new lib_dynamodb_1.PutCommand({
             TableName: this.tableName,
@@ -39,7 +20,6 @@ class DynamoFollowDAO {
                 followee_handle: followeeAlias,
             },
         }));
-        // Increment counts
         await Promise.all([
             this.incrementCount(followerAlias, "followee_count"),
             this.incrementCount(followeeAlias, "follower_count"),
@@ -53,7 +33,6 @@ class DynamoFollowDAO {
                 followee_handle: followeeAlias,
             },
         }));
-        // Decrement counts
         await Promise.all([
             this.decrementCount(followerAlias, "followee_count"),
             this.decrementCount(followeeAlias, "follower_count"),
@@ -87,7 +66,6 @@ class DynamoFollowDAO {
         }
         const result = await this.client.send(new lib_dynamodb_1.QueryCommand(params));
         const aliases = result.Items?.map((item) => item.follower_handle) ?? [];
-        // Look up user details
         const users = await this.getUsersByAliases(aliases);
         const hasMore = !!result.LastEvaluatedKey;
         return [users, hasMore];
@@ -119,7 +97,6 @@ class DynamoFollowDAO {
     async getFolloweeCount(alias) {
         return this.getCount(alias, "followee_count");
     }
-    // Get all follower aliases for a user (used by feed distribution)
     async getAllFollowerAliases(followeeAlias) {
         const aliases = [];
         let lastKey = undefined;
@@ -143,10 +120,9 @@ class DynamoFollowDAO {
         return aliases;
     }
     async getUsersByAliases(aliases) {
-        const userDAO = new (await Promise.resolve().then(() => __importStar(require("./DynamoUserDAO")))).DynamoUserDAO();
         const users = [];
         for (const alias of aliases) {
-            const user = await userDAO.getUser(alias);
+            const user = await this.userDAO.getUser(alias);
             if (user)
                 users.push(user);
         }

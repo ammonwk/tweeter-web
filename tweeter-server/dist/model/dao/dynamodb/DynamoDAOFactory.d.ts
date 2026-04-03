@@ -6,6 +6,7 @@ import { IStoryDAO } from "../IStoryDAO";
 import { IAuthTokenDAO } from "../IAuthTokenDAO";
 import { IImageDAO } from "../IImageDAO";
 export declare class DynamoDAOFactory implements DAOFactory {
+    private userDAO;
     createUserDAO(): IUserDAO;
     createFollowDAO(): IFollowDAO;
     createFeedDAO(): IFeedDAO;

@@ -8,17 +8,21 @@ const DynamoStoryDAO_1 = require("./DynamoStoryDAO");
 const DynamoAuthTokenDAO_1 = require("./DynamoAuthTokenDAO");
 const S3ImageDAO_1 = require("../s3/S3ImageDAO");
 class DynamoDAOFactory {
+    userDAO = null;
     createUserDAO() {
-        return new DynamoUserDAO_1.DynamoUserDAO();
+        if (!this.userDAO) {
+            this.userDAO = new DynamoUserDAO_1.DynamoUserDAO();
+        }
+        return this.userDAO;
     }
     createFollowDAO() {
-        return new DynamoFollowDAO_1.DynamoFollowDAO();
+        return new DynamoFollowDAO_1.DynamoFollowDAO(this.createUserDAO());
     }
     createFeedDAO() {
-        return new DynamoFeedDAO_1.DynamoFeedDAO();
+        return new DynamoFeedDAO_1.DynamoFeedDAO(this.createUserDAO());
     }
     createStoryDAO() {
-        return new DynamoStoryDAO_1.DynamoStoryDAO();
+        return new DynamoStoryDAO_1.DynamoStoryDAO(this.createUserDAO());
     }
     createAuthTokenDAO() {
         return new DynamoAuthTokenDAO_1.DynamoAuthTokenDAO();

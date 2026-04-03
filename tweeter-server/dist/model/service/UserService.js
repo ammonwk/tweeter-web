@@ -59,6 +59,7 @@ class UserService {
         return userDAO.getUser(alias);
     }
     async logout(token) {
+        await this.authService.verifyToken(token);
         const authTokenDAO = this.factory.createAuthTokenDAO();
         await authTokenDAO.deleteAuthToken(token);
     }

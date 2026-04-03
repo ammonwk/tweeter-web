@@ -1,10 +1,13 @@
 import { UserDto } from "tweeter-shared";
 import { IFollowDAO } from "../IFollowDAO";
+import { IUserDAO } from "../IUserDAO";
 export declare class DynamoFollowDAO implements IFollowDAO {
     private readonly client;
     private readonly tableName;
     private readonly indexName;
     private readonly countsTable;
+    private readonly userDAO;
+    constructor(userDAO: IUserDAO);
     putFollow(followerAlias: string, followeeAlias: string): Promise<void>;
     deleteFollow(followerAlias: string, followeeAlias: string): Promise<void>;
     getIsFollower(followerAlias: string, followeeAlias: string): Promise<boolean>;

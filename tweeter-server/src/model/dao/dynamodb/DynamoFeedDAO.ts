@@ -7,10 +7,16 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { StatusDto } from "tweeter-shared";
 import { IFeedDAO } from "../IFeedDAO";
+import { IUserDAO } from "../IUserDAO";
 
 export class DynamoFeedDAO implements IFeedDAO {
   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
   private readonly tableName = "tweeter-feed";
+  private readonly userDAO: IUserDAO;
+
+  constructor(userDAO: IUserDAO) {
+    this.userDAO = userDAO;
+  }
 
   async putFeedItem(
     receiverAlias: string,
@@ -66,7 +72,9 @@ export class DynamoFeedDAO implements IFeedDAO {
           const unprocessed = result.UnprocessedItems?.[this.tableName];
           if (unprocessed && unprocessed.length > 0) {
             writeRequests = unprocessed as typeof writeRequests;
-            await new Promise((r) => setTimeout(r, 200 * Math.pow(2, retries)));
+            await new Promise((r) =>
+              setTimeout(r, 200 * Math.pow(2, retries))
+            );
             retries++;
           } else {
             break;
@@ -76,7 +84,9 @@ export class DynamoFeedDAO implements IFeedDAO {
             e.name === "ProvisionedThroughputExceededException" &&
             retries < 4
           ) {
-            await new Promise((r) => setTimeout(r, 500 * Math.pow(2, retries)));
+            await new Promise((r) =>
+              setTimeout(r, 500 * Math.pow(2, retries))
+            );
             retries++;
           } else {
             throw e;
@@ -98,7 +108,7 @@ export class DynamoFeedDAO implements IFeedDAO {
         ":alias": alias,
       },
       Limit: pageSize,
-      ScanIndexForward: false, // newest first
+      ScanIndexForward: false,
     };
 
     if (lastTimestamp !== undefined) {
@@ -111,14 +121,9 @@ export class DynamoFeedDAO implements IFeedDAO {
     const result = await this.client.send(new QueryCommand(params));
     const items = result.Items ?? [];
 
-    // Look up user info for each status
-    const userDAO = new (
-      await import("./DynamoUserDAO")
-    ).DynamoUserDAO();
-
     const statuses: StatusDto[] = [];
     for (const item of items) {
-      const user = await userDAO.getUser(item.sender_alias as string);
+      const user = await this.userDAO.getUser(item.sender_alias as string);
       if (user) {
         statuses.push({
           post: item.post as string,

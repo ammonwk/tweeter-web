@@ -13,20 +13,25 @@ import { DynamoAuthTokenDAO } from "./DynamoAuthTokenDAO";
 import { S3ImageDAO } from "../s3/S3ImageDAO";
 
 export class DynamoDAOFactory implements DAOFactory {
+  private userDAO: IUserDAO | null = null;
+
   createUserDAO(): IUserDAO {
-    return new DynamoUserDAO();
+    if (!this.userDAO) {
+      this.userDAO = new DynamoUserDAO();
+    }
+    return this.userDAO;
   }
 
   createFollowDAO(): IFollowDAO {
-    return new DynamoFollowDAO();
+    return new DynamoFollowDAO(this.createUserDAO());
   }
 
   createFeedDAO(): IFeedDAO {
-    return new DynamoFeedDAO();
+    return new DynamoFeedDAO(this.createUserDAO());
   }
 
   createStoryDAO(): IStoryDAO {
-    return new DynamoStoryDAO();
+    return new DynamoStoryDAO(this.createUserDAO());
   }
 
   createAuthTokenDAO(): IAuthTokenDAO {

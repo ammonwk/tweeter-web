@@ -9,12 +9,18 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { UserDto } from "tweeter-shared";
 import { IFollowDAO } from "../IFollowDAO";
+import { IUserDAO } from "../IUserDAO";
 
 export class DynamoFollowDAO implements IFollowDAO {
   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
   private readonly tableName = "tweeter-follows";
   private readonly indexName = "follows-index";
   private readonly countsTable = "tweeter-follow-counts";
+  private readonly userDAO: IUserDAO;
+
+  constructor(userDAO: IUserDAO) {
+    this.userDAO = userDAO;
+  }
 
   async putFollow(
     followerAlias: string,
@@ -30,7 +36,6 @@ export class DynamoFollowDAO implements IFollowDAO {
       })
     );
 
-    // Increment counts
     await Promise.all([
       this.incrementCount(followerAlias, "followee_count"),
       this.incrementCount(followeeAlias, "follower_count"),
@@ -51,7 +56,6 @@ export class DynamoFollowDAO implements IFollowDAO {
       })
     );
 
-    // Decrement counts
     await Promise.all([
       this.decrementCount(followerAlias, "followee_count"),
       this.decrementCount(followeeAlias, "follower_count"),
@@ -100,7 +104,6 @@ export class DynamoFollowDAO implements IFollowDAO {
     const aliases =
       result.Items?.map((item) => item.follower_handle as string) ?? [];
 
-    // Look up user details
     const users = await this.getUsersByAliases(aliases);
     const hasMore = !!result.LastEvaluatedKey;
 
@@ -146,7 +149,6 @@ export class DynamoFollowDAO implements IFollowDAO {
     return this.getCount(alias, "followee_count");
   }
 
-  // Get all follower aliases for a user (used by feed distribution)
   async getAllFollowerAliases(followeeAlias: string): Promise<string[]> {
     const aliases: string[] = [];
     let lastKey: any = undefined;
@@ -177,12 +179,9 @@ export class DynamoFollowDAO implements IFollowDAO {
   }
 
   private async getUsersByAliases(aliases: string[]): Promise<UserDto[]> {
-    const userDAO = new (
-      await import("./DynamoUserDAO")
-    ).DynamoUserDAO();
     const users: UserDto[] = [];
     for (const alias of aliases) {
-      const user = await userDAO.getUser(alias);
+      const user = await this.userDAO.getUser(alias);
       if (user) users.push(user);
     }
     return users;
