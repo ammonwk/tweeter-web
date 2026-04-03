@@ -1,0 +1,18 @@
+{
+  "name": "tweeter-server",
+  "version": "1.0.0",
+  "description": "Tweeter server-side Lambda functions",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "tweeter-shared": "file:../tweeter-shared"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.2",
+    "rimraf": "^5.0.5"
+  }
+}
