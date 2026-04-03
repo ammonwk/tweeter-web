@@ -2,8 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const UserService_1 = require("../model/service/UserService");
+const DynamoDAOFactory_1 = require("../model/dao/dynamodb/DynamoDAOFactory");
 const handler = async (event) => {
-    const userService = new UserService_1.UserService();
+    const userService = new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory());
     try {
         const [user, token] = await userService.register(event.firstName, event.lastName, event.alias, event.password, event.userImageBytes, event.imageFileExtension);
         return {
@@ -14,7 +15,7 @@ const handler = async (event) => {
         };
     }
     catch (e) {
-        throw new Error("[Bad Request] " + (e.message ?? "Unknown error"));
+        throw new Error(e.message ?? "[Server Error] Unknown error");
     }
 };
 exports.handler = handler;
