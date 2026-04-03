@@ -4,37 +4,45 @@ import { AuthToken, User } from "tweeter-shared";
 
 describe("ServerFacade Integration Tests", () => {
   let serverFacade: ServerFacade;
-
-  beforeAll(() => {
-    serverFacade = new ServerFacade();
-  });
+  let authToken: AuthToken;
 
   jest.setTimeout(15000);
 
-  test("register returns a user and auth token", async () => {
-    const [user, authToken] = await serverFacade.register({
-      firstName: "Test",
-      lastName: "User",
+  beforeAll(async () => {
+    serverFacade = new ServerFacade();
+    // Login to get a valid auth token for authenticated tests
+    const [user, token] = await serverFacade.login({
       alias: "@testuser",
       password: "password123",
-      userImageBytes: "dGVzdA==", // base64 "test"
+    });
+    authToken = token;
+  });
+
+  test("register returns a user and auth token", async () => {
+    const uniqueAlias = `@regtest${Date.now()}`;
+    const [user, token] = await serverFacade.register({
+      firstName: "Test",
+      lastName: "User",
+      alias: uniqueAlias,
+      password: "password123",
+      userImageBytes:
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
       imageFileExtension: ".png",
     });
 
     expect(user).toBeDefined();
     expect(user).toBeInstanceOf(User);
-    expect(user.firstName).toBeDefined();
-    expect(user.alias).toBeDefined();
+    expect(user.alias).toBe(uniqueAlias);
 
-    expect(authToken).toBeDefined();
-    expect(authToken).toBeInstanceOf(AuthToken);
-    expect(authToken.token).toBeDefined();
+    expect(token).toBeDefined();
+    expect(token).toBeInstanceOf(AuthToken);
+    expect(token.token).toBeDefined();
   });
 
   test("getMoreFollowers returns a page of users", async () => {
     const [users, hasMore] = await serverFacade.getMoreFollowers({
-      token: "test-token",
-      userAlias: "@allen",
+      token: authToken.token,
+      userAlias: "@mainuser",
       pageSize: 5,
       lastItem: null,
     });
@@ -49,11 +57,11 @@ describe("ServerFacade Integration Tests", () => {
 
   test("getFollowerCount returns a number", async () => {
     const count = await serverFacade.getFollowerCount({
-      token: "test-token",
+      token: authToken.token,
       user: {
-        firstName: "Allen",
-        lastName: "Anderson",
-        alias: "@allen",
+        firstName: "Main",
+        lastName: "User",
+        alias: "@mainuser",
         imageUrl: "https://example.com/image.png",
       },
     });
@@ -65,11 +73,11 @@ describe("ServerFacade Integration Tests", () => {
 
   test("getFolloweeCount returns a number", async () => {
     const count = await serverFacade.getFolloweeCount({
-      token: "test-token",
+      token: authToken.token,
       user: {
-        firstName: "Allen",
-        lastName: "Anderson",
-        alias: "@allen",
+        firstName: "Main",
+        lastName: "User",
+        alias: "@mainuser",
         imageUrl: "https://example.com/image.png",
       },
     });
