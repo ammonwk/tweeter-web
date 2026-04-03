@@ -9,7 +9,6 @@ class AuthorizationService {
     }
     async verifyToken(token) {
         const authTokenDAO = this.factory.createAuthTokenDAO();
-        console.log("AuthService: getting token...");
         const tokenRecord = await authTokenDAO.getAuthToken(token);
         if (!tokenRecord) {
             throw new Error("[Bad Request] Invalid or expired auth token");
@@ -20,9 +19,7 @@ class AuthorizationService {
             throw new Error("[Bad Request] Auth token has expired");
         }
         // Refresh the token timestamp on each use
-        console.log("AuthService: refreshing token...");
         await authTokenDAO.putAuthToken(token, now, tokenRecord.alias);
-        console.log("AuthService: token verified for", tokenRecord.alias);
         return tokenRecord.alias;
     }
 }
