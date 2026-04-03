@@ -2,7 +2,7 @@ import { PostStatusPresenter, PostStatusView } from "../../presenters/PostStatus
 import { AuthToken, Status, User } from "tweeter-shared";
 import PostStatus from "./PostStatus";
 import { render, screen } from "@testing-library/react";
-import { instance, mock, verify } from "ts-mockito";
+import { anything, instance, mock, verify, when } from "ts-mockito";
 import userEvent from "@testing-library/user-event";
 
 const mockUser = new User("test user", "test email", "test password", "test image");
@@ -27,18 +27,21 @@ jest.mock("../toaster/hooks", () => ({
 
 describe("PostStatus", () => {
 
-    const mockSubmitPost = jest.fn();
-    const mockClearPost = jest.fn();
-
-    const MockPresenter = jest.fn().mockImplementation((view) => ({
-        submitPost: mockSubmitPost,
-        clearPost: mockClearPost,
-    }));
+    let mockPresenter: PostStatusPresenter;
+    let mockPresenterInstance: PostStatusPresenter;
 
     const renderPostStatus = () => {
-        render(<PostStatus presenter={MockPresenter} />);
+        render(<PostStatus presenter={MockPresenterConstructor as any} />);
     }
 
+    beforeEach(() => {
+        mockPresenter = mock(PostStatusPresenter);
+        mockPresenterInstance = instance(mockPresenter);
+    });
+
+    function MockPresenterConstructor(this:any, view: PostStatusView) {
+        return mockPresenterInstance;
+    }
 
     it("post status and clear buttons are disabled when post is empty", () => {
         renderPostStatus();
@@ -63,16 +66,16 @@ describe("PostStatus", () => {
 
     it("calls submitPost when you click the post button", async () => {
         renderPostStatus();
-        await userEvent.type(screen.getByPlaceholderText("What's on your mind?"), "test");
+        await userEvent.type(screen.getByPlaceholderText("What's on your mind?"), "test status");
         await userEvent.click(screen.getByRole("button", { name: "Post Status" }));
-        expect(mockSubmitPost).toHaveBeenCalled();
+        verify(mockPresenter.submitPost(mockAuthToken, anything())).once();
     });
 
     it("calls clearPost when you click the clear button", async () => {
         renderPostStatus();
         await userEvent.type(screen.getByPlaceholderText("What's on your mind?"), "test");
         await userEvent.click(screen.getByRole("button", { name: "Clear" }));
-        expect(mockClearPost).toHaveBeenCalled();
+        verify(mockPresenter.clearPost()).once();
     });
 
 });

@@ -65,4 +65,23 @@ describe("PostStatusPresenter", () => {
         await presenter.postStatus(authToken, status);
         verify(mockPostStatusView.deleteToast("toast-id")).once();
     });
+
+    it('does not call clearPost or display success message if the post status fails', async () => {
+        when(mockUserService.postStatus(authToken, status)).thenReject(new Error("Post status failed"));
+        await presenter.postStatus(authToken, status);
+        verify(mockPostStatusView.clearPost()).never();
+        verify(mockPostStatusView.displaySuccessMessage("Status posted successfully")).never();
+    });
+
+    it("calls postStatus when submitPost is called", async () => {
+        const spy = jest.spyOn(presenter, "postStatus");
+        await presenter.submitPost(authToken, status);
+        expect(spy).toHaveBeenCalledWith(authToken, status);
+    });
+
+    it("calls clearPost when postStatus is called", async () => {
+        await presenter.postStatus(authToken, status);
+        verify(mockPostStatusView.clearPost()).once();
+    });
+
 });
