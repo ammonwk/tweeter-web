@@ -1,10 +1,11 @@
 import { LoginRequest, AuthenticateResponse } from "tweeter-shared";
 import { UserService } from "../model/service/UserService";
+import { DynamoDAOFactory } from "../model/dao/dynamodb/DynamoDAOFactory";
 
 export const handler = async (
   event: LoginRequest
 ): Promise<AuthenticateResponse> => {
-  const userService = new UserService();
+  const userService = new UserService(new DynamoDAOFactory());
   try {
     const [user, token] = await userService.login(event.alias, event.password);
     return {
@@ -14,8 +15,6 @@ export const handler = async (
       token: token,
     };
   } catch (e) {
-    throw new Error(
-      "[Bad Request] " + ((e as Error).message ?? "Unknown error")
-    );
+    throw new Error((e as Error).message ?? "[Server Error] Unknown error");
   }
 };

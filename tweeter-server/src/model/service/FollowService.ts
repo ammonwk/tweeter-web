@@ -1,19 +1,29 @@
-import { FakeData, User, UserDto } from "tweeter-shared";
+import { UserDto } from "tweeter-shared";
+import { DAOFactory } from "../dao/DAOFactory";
+import { AuthorizationService } from "./AuthorizationService";
 
 export class FollowService {
+  private factory: DAOFactory;
+  private authService: AuthorizationService;
+
+  constructor(factory: DAOFactory) {
+    this.factory = factory;
+    this.authService = new AuthorizationService(factory);
+  }
+
   public async loadMoreFollowers(
     token: string,
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
   ): Promise<[UserDto[], boolean]> {
-    const lastUser = lastItem ? User.fromDto(lastItem) : null;
-    const [users, hasMore] = FakeData.instance.getPageOfUsers(
-      lastUser,
+    await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    return followDAO.getPageOfFollowers(
+      userAlias,
       pageSize,
-      userAlias
+      lastItem?.alias
     );
-    return [users.map((u) => u.dto), hasMore];
   }
 
   public async loadMoreFollowees(
@@ -22,27 +32,31 @@ export class FollowService {
     pageSize: number,
     lastItem: UserDto | null
   ): Promise<[UserDto[], boolean]> {
-    const lastUser = lastItem ? User.fromDto(lastItem) : null;
-    const [users, hasMore] = FakeData.instance.getPageOfUsers(
-      lastUser,
+    await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    return followDAO.getPageOfFollowees(
+      userAlias,
       pageSize,
-      userAlias
+      lastItem?.alias
     );
-    return [users.map((u) => u.dto), hasMore];
   }
 
   public async getFollowerCount(
     token: string,
     user: UserDto
   ): Promise<number> {
-    return FakeData.instance.getFollowerCount(user.alias) as number;
+    await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    return followDAO.getFollowerCount(user.alias);
   }
 
   public async getFolloweeCount(
     token: string,
     user: UserDto
   ): Promise<number> {
-    return FakeData.instance.getFolloweeCount(user.alias) as number;
+    await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    return followDAO.getFolloweeCount(user.alias);
   }
 
   public async getIsFollowerStatus(
@@ -50,19 +64,25 @@ export class FollowService {
     user: UserDto,
     selectedUser: UserDto
   ): Promise<boolean> {
-    return FakeData.instance.isFollower();
+    await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    return followDAO.getIsFollower(user.alias, selectedUser.alias);
   }
 
   public async follow(
     token: string,
     userToFollow: UserDto
   ): Promise<[number, number]> {
-    const followerCount = (await FakeData.instance.getFollowerCount(
+    const currentAlias = await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    await followDAO.putFollow(currentAlias, userToFollow.alias);
+
+    const followerCount = await followDAO.getFollowerCount(
       userToFollow.alias
-    )) as number;
-    const followeeCount = (await FakeData.instance.getFolloweeCount(
+    );
+    const followeeCount = await followDAO.getFolloweeCount(
       userToFollow.alias
-    )) as number;
+    );
     return [followerCount, followeeCount];
   }
 
@@ -70,12 +90,16 @@ export class FollowService {
     token: string,
     userToUnfollow: UserDto
   ): Promise<[number, number]> {
-    const followerCount = (await FakeData.instance.getFollowerCount(
+    const currentAlias = await this.authService.verifyToken(token);
+    const followDAO = this.factory.createFollowDAO();
+    await followDAO.deleteFollow(currentAlias, userToUnfollow.alias);
+
+    const followerCount = await followDAO.getFollowerCount(
       userToUnfollow.alias
-    )) as number;
-    const followeeCount = (await FakeData.instance.getFolloweeCount(
+    );
+    const followeeCount = await followDAO.getFolloweeCount(
       userToUnfollow.alias
-    )) as number;
+    );
     return [followerCount, followeeCount];
   }
 }
