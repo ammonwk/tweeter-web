@@ -52,8 +52,10 @@
     ]
   },
   "devDependencies": {
+    "@types/isomorphic-fetch": "^0.0.39",
     "@types/node": "^20.11.24",
     "@vitejs/plugin-react": "^4.2.1",
+    "isomorphic-fetch": "^3.0.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "ts-jest": "^29.4.9",
