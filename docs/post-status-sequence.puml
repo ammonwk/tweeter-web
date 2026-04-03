@@ -1,0 +1,75 @@
+@startuml Post Status Sequence Diagram
+
+title Successful Post Status - Sequence Diagram
+
+actor User
+participant "PostStatus\nComponent" as View
+participant "PostStatusPresenter" as Presenter
+participant "UserService" as Service
+participant "ServerFacade" as Facade
+participant "ClientCommunicator" as CC
+participant "API Gateway" as API
+participant "PostStatusLambda\n(Handler)" as Lambda
+participant "StatusService\n(Server)" as ServerService
+
+User -> View : clicks "Post Status"
+activate View
+
+View -> Presenter : submitPost(post, authToken, currentUser)
+activate Presenter
+
+Presenter -> View : displayToast("Posting status...")
+Presenter -> View : setIsLoading(true)
+
+Presenter -> Presenter : postStatus(authToken, status)
+activate Presenter
+
+Presenter -> Service : postStatus(authToken, newStatus)
+activate Service
+
+Service -> Facade : postStatus(PostStatusRequest)
+activate Facade
+
+Facade -> CC : doPost(request, "/status/post")
+activate CC
+
+CC -> API : HTTP POST /status/post\n{token, newStatus}
+activate API
+
+API -> Lambda : invoke(event)
+activate Lambda
+
+Lambda -> ServerService : postStatus(token, statusDto)
+activate ServerService
+
+ServerService --> Lambda : void
+deactivate ServerService
+
+Lambda --> API : {success: true, message: null}
+deactivate Lambda
+
+API --> CC : HTTP 200 Response
+deactivate API
+
+CC --> Facade : TweeterResponse
+deactivate CC
+
+Facade --> Service : void
+deactivate Facade
+
+Service --> Presenter : void
+deactivate Service
+
+deactivate Presenter
+
+Presenter -> View : clearPost()
+Presenter -> View : displaySuccessMessage("Successfully Posted!")
+Presenter -> View : setIsLoading(false)
+Presenter -> View : deleteToast()
+
+deactivate Presenter
+
+View --> User : shows success message
+deactivate View
+
+@enduml
