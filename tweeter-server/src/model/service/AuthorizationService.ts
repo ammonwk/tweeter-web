@@ -11,6 +11,7 @@ export class AuthorizationService {
 
   async verifyToken(token: string): Promise<string> {
     const authTokenDAO = this.factory.createAuthTokenDAO();
+    console.log("AuthService: getting token...");
     const tokenRecord = await authTokenDAO.getAuthToken(token);
 
     if (!tokenRecord) {
@@ -24,7 +25,9 @@ export class AuthorizationService {
     }
 
     // Refresh the token timestamp on each use
+    console.log("AuthService: refreshing token...");
     await authTokenDAO.putAuthToken(token, now, tokenRecord.alias);
+    console.log("AuthService: token verified for", tokenRecord.alias);
 
     return tokenRecord.alias;
   }

@@ -39,11 +39,10 @@ export class DynamoFeedDAO implements IFeedDAO {
       post: string;
     }[]
   ): Promise<void> {
-    // DynamoDB batch write max is 25 items
     const BATCH_SIZE = 25;
     for (let i = 0; i < items.length; i += BATCH_SIZE) {
       const batch = items.slice(i, i + BATCH_SIZE);
-      const writeRequests = batch.map((item) => ({
+      let writeRequests = batch.map((item) => ({
         PutRequest: {
           Item: {
             receiver_alias: item.receiverAlias,
@@ -54,13 +53,36 @@ export class DynamoFeedDAO implements IFeedDAO {
         },
       }));
 
-      await this.client.send(
-        new BatchWriteCommand({
-          RequestItems: {
-            [this.tableName]: writeRequests,
-          },
-        })
-      );
+      let retries = 0;
+      while (writeRequests.length > 0 && retries < 5) {
+        try {
+          const result = await this.client.send(
+            new BatchWriteCommand({
+              RequestItems: {
+                [this.tableName]: writeRequests,
+              },
+            })
+          );
+          const unprocessed = result.UnprocessedItems?.[this.tableName];
+          if (unprocessed && unprocessed.length > 0) {
+            writeRequests = unprocessed as typeof writeRequests;
+            await new Promise((r) => setTimeout(r, 200 * Math.pow(2, retries)));
+            retries++;
+          } else {
+            break;
+          }
+        } catch (e: any) {
+          if (
+            e.name === "ProvisionedThroughputExceededException" &&
+            retries < 4
+          ) {
+            await new Promise((r) => setTimeout(r, 500 * Math.pow(2, retries)));
+            retries++;
+          } else {
+            throw e;
+          }
+        }
+      }
     }
   }
 

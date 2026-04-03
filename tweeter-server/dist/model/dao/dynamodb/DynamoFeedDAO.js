@@ -41,11 +41,10 @@ class DynamoFeedDAO {
         }));
     }
     async putFeedItemBatch(items) {
-        // DynamoDB batch write max is 25 items
         const BATCH_SIZE = 25;
         for (let i = 0; i < items.length; i += BATCH_SIZE) {
             const batch = items.slice(i, i + BATCH_SIZE);
-            const writeRequests = batch.map((item) => ({
+            let writeRequests = batch.map((item) => ({
                 PutRequest: {
                     Item: {
                         receiver_alias: item.receiverAlias,
@@ -55,11 +54,35 @@ class DynamoFeedDAO {
                     },
                 },
             }));
-            await this.client.send(new lib_dynamodb_1.BatchWriteCommand({
-                RequestItems: {
-                    [this.tableName]: writeRequests,
-                },
-            }));
+            let retries = 0;
+            while (writeRequests.length > 0 && retries < 5) {
+                try {
+                    const result = await this.client.send(new lib_dynamodb_1.BatchWriteCommand({
+                        RequestItems: {
+                            [this.tableName]: writeRequests,
+                        },
+                    }));
+                    const unprocessed = result.UnprocessedItems?.[this.tableName];
+                    if (unprocessed && unprocessed.length > 0) {
+                        writeRequests = unprocessed;
+                        await new Promise((r) => setTimeout(r, 200 * Math.pow(2, retries)));
+                        retries++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                catch (e) {
+                    if (e.name === "ProvisionedThroughputExceededException" &&
+                        retries < 4) {
+                        await new Promise((r) => setTimeout(r, 500 * Math.pow(2, retries)));
+                        retries++;
+                    }
+                    else {
+                        throw e;
+                    }
+                }
+            }
         }
     }
     async getPageOfFeedItems(alias, pageSize, lastTimestamp) {
