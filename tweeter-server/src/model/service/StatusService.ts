@@ -1,6 +1,10 @@
 import { StatusDto } from "tweeter-shared";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { DAOFactory } from "../dao/DAOFactory";
 import { AuthorizationService } from "./AuthorizationService";
+
+const POST_STATUS_QUEUE_URL =
+  "https://sqs.us-east-1.amazonaws.com/590184031929/tweeter-post-status-queue";
 
 export class StatusService {
   private factory: DAOFactory;
@@ -48,29 +52,24 @@ export class StatusService {
     const currentAlias = await this.authService.verifyToken(token);
     const storyDAO = this.factory.createStoryDAO();
 
-    // Post to story
+    // Post to story synchronously
     await storyDAO.putStoryItem(
       currentAlias,
       newStatus.timestamp,
       newStatus.post
     );
 
-    // Synchronously update feeds of all followers (will be async in M4B)
-    const followDAO = this.factory.createFollowDAO();
-    const feedDAO = this.factory.createFeedDAO();
-
-    const followerAliases =
-      await followDAO.getAllFollowerAliases(currentAlias);
-
-    const feedItems = followerAliases.map((alias: string) => ({
-      receiverAlias: alias,
-      timestamp: newStatus.timestamp,
-      senderAlias: currentAlias,
-      post: newStatus.post,
-    }));
-
-    if (feedItems.length > 0) {
-      await feedDAO.putFeedItemBatch(feedItems);
-    }
+    // Send to SQS for async feed distribution
+    const sqsClient = new SQSClient();
+    await sqsClient.send(
+      new SendMessageCommand({
+        QueueUrl: POST_STATUS_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          senderAlias: currentAlias,
+          post: newStatus.post,
+          timestamp: newStatus.timestamp,
+        }),
+      })
+    );
   }
 }

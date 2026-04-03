@@ -17,6 +17,7 @@
     "tweeter-shared": "file:../tweeter-shared"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
     "@types/bcryptjs": "^2.4.6",
     "rimraf": "^5.0.5",
     "typescript": "^5.0.2"
