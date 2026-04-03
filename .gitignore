@@ -23,3 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /dist
+tweeter-shared/dist
+tweeter-server/dist
+tweeter-web/dist
